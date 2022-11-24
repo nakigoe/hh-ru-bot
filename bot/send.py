@@ -2,11 +2,15 @@
 Автор: Ангел Максим Витальевич, то есть Nakigoe
 Свежая версия всегда здесь: https://github.com/nakigoe/hh-ru-bot
 Пишите, если Вы хотите получить уроки по C# и Питону: nakigoetenshi@gmail.com
+1000 рублей 2 часа один урок
+
 Ставьте звёзды и делитесь сноской на репозиторий со всеми!
 
 Code written by Maxim Angel, aka Nakigoe
 You can always find the newest version at https://github.com/nakigoe/hh-ru-bot
 contact me for Python and C# lessons at nakigoetenshi@gmail.com
+$50 for 2 hours lesson
+
 Put some stars and share!!!
 '''
 
