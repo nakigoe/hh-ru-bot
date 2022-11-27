@@ -17,16 +17,17 @@
   •  файл с сопроводительным письмом
   
   
-### Установите:
+### Установите Питон:
 
-  •  Python 3.10
-  
+  •  https://www.python.org/downloads/
+
+### Установите библиотеки (откройте командную строку):
+
   •  Selenium `pip install selenium`
   
+  •  Webdriver Manager `pip install webdriver-manager`
 
-### Загрузите: 
-
-`chromedriver.exe` с официального сайта в корневую папку бота рядом с сопроводительным письмом.
+### Запускайте!
 
 Свежая версия всегда здесь: https://github.com/nakigoe/hh-ru-bot
 <br> Пишите, если Вы хотите получить уроки по C# и Питону: nakigoetenshi@gmail.com
