@@ -33,7 +33,7 @@
 <br> Пишите, если Вы хотите получить уроки по C# и Питону: nakigoetenshi@gmail.com
 <br> 1000 рублей 2 часа один урок
 
-<h2 style="margin: 0 auto" align="center">Ставьте звёзды и делитесь сноской на репозиторий со всеми!</h2>
+<h2 style="margin: 0 auto" align="center">Ставьте звёзды и делитесь сноской на репозиторий со всеми, кто искал работу, ищет работу, планирует искать работу!</h2>
 <br>
 <p style="margin: 0 auto" align="center">Посетите:</p>
 <h1><a href="https://nakigoe.org/ru/" style="background-color: black;" target="_blank">
