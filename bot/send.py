@@ -17,19 +17,25 @@ Put stars and share!!!
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-chrome_options = Options()
-chrome_options.add_experimental_option("detach", True)
-chrome_options.add_argument("start-maximized")
-chrome_options.page_load_strategy = 'eager' #do not wait for images to load
+from selenium.common.exceptions import StaleElementReferenceException
 import time
+from selenium.webdriver.edge import service
+
+options = webdriver.EdgeOptions()
+options.use_chromium = True
+options.add_argument("start-maximized")
+# options.binary_location = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+s=service.Service(r'msedgedriver.exe')
+options.page_load_strategy = 'eager' #do not wait for images to load
+
+driver = webdriver.Edge(service=s, options=options)
+
 s = 5 #time to wait for a single component on the page to appear, in seconds; increase it if you get server-side errors «try again later»
 counter = 0
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 text_file = open("cover-letter-ru.txt", "r")
 message = text_file.read()
@@ -137,6 +143,8 @@ driver.execute_script('arguments[0].click()', advanced_search_switch)
 
 if region == "global":
     clear_region()
+    
+    #enable if you want to select certain countries, right now it selects ALL countries by default:
     #select_all_countries()
 
 advanced_search_textarea = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//input[@data-qa="vacancysearch__keywords-input"]')))
