@@ -24,10 +24,14 @@
 ### Установите библиотеки (откройте командную строку):
 
   •  Selenium `pip install selenium`
-  
-  •  Webdriver Manager `pip install webdriver-manager`
 
+### Установите Edge-driver в папку бота:
+
+  •  https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
+  
 ### Запускайте!
+
+  •  двойной щелчок мыши по `start.bat'
 
 Свежая версия всегда здесь: https://github.com/nakigoe/hh-ru-bot
 <br> Пишите, если Вы хотите получить уроки по C# и Питону: nakigoetenshi@gmail.com
