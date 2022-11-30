@@ -29,13 +29,16 @@ options = webdriver.EdgeOptions()
 options.use_chromium = True
 options.add_argument("start-maximized")
 # options.binary_location = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
-s=service.Service(r'msedgedriver.exe')
+my_service=service.Service(r'msedgedriver.exe')
 options.page_load_strategy = 'eager' #do not wait for images to load
-
-driver = webdriver.Edge(service=s, options=options)
+options.add_experimental_option("detach", True)
 
 s = 5 #time to wait for a single component on the page to appear, in seconds; increase it if you get server-side errors «try again later»
 counter = 0
+
+driver = webdriver.Edge(service=my_service, options=options)
+action = ActionChains(driver)
+wait = WebDriverWait(driver,s)
 
 text_file = open("cover-letter-ru.txt", "r")
 message = text_file.read()
@@ -44,34 +47,42 @@ text_file.close()
 username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
-job_search_query = "C#"
+job_search_query = "английский"
 region = "global"
 
 def select_all_countries():
-    region_select_button = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-region-selectFromList"]')))
+    region_select_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-region-selectFromList"]')))
     driver.execute_script("arguments[0].click()", region_select_button)
     #select all countries:
     countries = driver.find_elements(By.XPATH, '//input[@name="bloko-tree-selector-default-name-0"]')
     for country in countries:
         driver.execute_script("arguments[0].click()", country)
     #submit selected countries:
-    region_submit_button = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="bloko-tree-selector-popup-submit"]')))
+    region_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="bloko-tree-selector-popup-submit"]')))
     driver.execute_script("arguments[0].click()", region_submit_button)
 
 def international_ok():
     try:
-        international = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="relocation-warning-confirm"]')))
+        international = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="relocation-warning-confirm"]')))
         driver.execute_script("arguments[0].click()", international)
     except TimeoutException:
         return #exit the function
+    driver.refresh()
 
 def check_cover_letter_popup():
+    global counter
     try:
-        cover_letter_popup = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//textarea[@data-qa="vacancy-response-popup-form-letter-input"]')))
+        cover_letter_popup = wait.until(EC.element_to_be_clickable((By.XPATH, '//textarea[@data-qa="vacancy-response-popup-form-letter-input"]')))
         driver.execute_script('arguments[0].innerHTML = arguments[1]', cover_letter_popup, message)
-        popup_cover_letter_submit_button = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))
+
+        #experimenting with unresponsive button:
+        cover_letter_popup.send_keys(Keys.ENTER) 
+        driver.implicitly_wait(s)
+        action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))).perform()
+        
+        #was unresponsive after another country popup, delete the JS click if unnecessary:
+        popup_cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))
         driver.execute_script("arguments[0].click()", popup_cover_letter_submit_button)
-        global counter
         counter += 1
         return 1
     except TimeoutException:
@@ -90,14 +101,14 @@ def click_all_jobs_on_the_page():
         try:
             # the page opening is already a response!
             international_ok()
-            cover_letter_button = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]')))
+            cover_letter_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]')))
             driver.execute_script("arguments[0].click()", cover_letter_button)
-            cover_letter_text = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea')))
+            cover_letter_text = wait.until(EC.element_to_be_clickable((By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea')))
             driver.execute_script('arguments[0].innerHTML = arguments[1]', cover_letter_text, message)
-            cover_letter_submit_button = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))
+            cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))
             driver.execute_script("arguments[0].click()", cover_letter_submit_button)
             #wait until submitted to the server:
-            WebDriverWait(driver,s).until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
+            wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
             counter +=1
             driver.close()
         except TimeoutException:
@@ -112,15 +123,15 @@ def click_all_jobs_on_the_page():
 
 def clear_region():
     try:
-        check_region = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/span')))
+        check_region = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/span')))
 
         while check_region:
-            clear_region = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/button[@data-qa="bloko-tag__cross"]')))
+            clear_region = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/button[@data-qa="bloko-tag__cross"]')))
             driver.execute_script("arguments[0].click()", clear_region)
             
             #check if multiple regions are selected from the previous searches
             try:
-                check_region = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/span')))
+                check_region = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/span')))
             except TimeoutException:
                 return #exit the function
 
@@ -128,18 +139,21 @@ def clear_region():
         return #exit the function
 
 driver.get(login_page)
-WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.NAME, 'login'))).send_keys(username)
+wait.until(EC.element_to_be_clickable((By.NAME, 'login'))).send_keys(username)
 
-show_more_button = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='expand-login-by-password']")))
+show_more_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='expand-login-by-password']")))
 driver.execute_script('arguments[0].click()', show_more_button)
 
-WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, "//input[@type='password']"))).send_keys(password)
+wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='password']"))).send_keys(password)
 
-login_button = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='account-login-submit']")))
+login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='account-login-submit']")))
 driver.execute_script('arguments[0].click()', login_button)
 
-advanced_search_switch = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="advanced-search"]')))
-driver.execute_script('arguments[0].click()', advanced_search_switch)
+#advanced search button becoming stale sometimes, that is why I'm setting the wait time, also pick between JS and Action_Chains clicking method:
+driver.implicitly_wait(s)
+action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="advanced-search"]')))).perform()
+# advanced_search_switch = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="advanced-search"]')))
+# driver.execute_script('arguments[0].click()', advanced_search_switch)
 
 if region == "global":
     clear_region()
@@ -147,7 +161,7 @@ if region == "global":
     #enable if you want to select certain countries, right now it selects ALL countries by default:
     #select_all_countries()
 
-advanced_search_textarea = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//input[@data-qa="vacancysearch__keywords-input"]')))
+advanced_search_textarea = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@data-qa="vacancysearch__keywords-input"]')))
 driver.execute_script('arguments[0].value = arguments[1]', advanced_search_textarea, job_search_query)
 
 no_agency = driver.find_element(By.XPATH, '//input[@data-qa="advanced-search__label-item_not_from_agency"]')
@@ -157,9 +171,10 @@ quantity = driver.find_element(By.XPATH, '//input[@data-qa="advanced-search__ite
 driver.execute_script("arguments[0].setAttribute('value','300')", quantity)
 driver.execute_script("arguments[0].click()", quantity)
 
-advanced_search_submit_button = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-submit-button"]')))
+advanced_search_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-submit-button"]')))
 driver.execute_script("arguments[0].click()", advanced_search_submit_button)
-
+driver.implicitly_wait(s)
+driver.refresh()
 while counter < 200: #there is a limit of 200 resumes per day on hh.ru
     click_all_jobs_on_the_page()
 
@@ -167,7 +182,7 @@ while counter < 200: #there is a limit of 200 resumes per day on hh.ru
     driver.switch_to.window(driver.window_handles[0])
 
     #take in another hundred of results:
-    next_page_button = WebDriverWait(driver,s).until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="pager-next"]')))
+    next_page_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="pager-next"]')))
     driver.execute_script("arguments[0].click()", next_page_button)
 
 # Close the only tab, will also close the browser.
