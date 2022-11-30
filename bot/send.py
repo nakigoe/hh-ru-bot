@@ -47,7 +47,7 @@ text_file.close()
 username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
-job_search_query = "английский"
+job_search_query = "Русский"
 region = "global"
 
 def select_all_countries():
@@ -80,7 +80,7 @@ def check_cover_letter_popup():
         driver.implicitly_wait(s)
         action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))).perform()
         
-        #was unresponsive after another country popup, delete the JS click if unnecessary:
+        #unresponsive after another country popup:
         popup_cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))
         driver.execute_script("arguments[0].click()", popup_cover_letter_submit_button)
         counter += 1
@@ -101,6 +101,17 @@ def click_all_jobs_on_the_page():
         try:
             # the page opening is already a response!
             international_ok()
+
+            #check if the application have been sent to the server by page opening, if not, press the response button manually, try up to 6 times:
+            for i in range(5):
+                try:
+                    if wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="vacancy-actions_responded"]'))):
+                        break
+                except TimeoutException:
+                    driver.refresh()
+                    driver.implicitly_wait(s)
+                    action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-link-top"]')))).perform()
+
             cover_letter_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]')))
             driver.execute_script("arguments[0].click()", cover_letter_button)
             cover_letter_text = wait.until(EC.element_to_be_clickable((By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea')))
