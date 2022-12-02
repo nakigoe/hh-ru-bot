@@ -44,7 +44,7 @@ text_file = open("cover-letter-ru.txt", "r")
 message = text_file.read()
 text_file.close()
 
-username = "nakigoe@gmail.com"
+username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
 job_search_query = "English"
