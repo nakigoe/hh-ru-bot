@@ -44,10 +44,10 @@ text_file = open("cover-letter-ru.txt", "r")
 message = text_file.read()
 text_file.close()
 
-username = "nakigoetenshi@gmail.com"
+username = "nakigoe@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
-job_search_query = "Русский"
+job_search_query = "English"
 region = "global"
 
 def select_all_countries():
@@ -90,8 +90,13 @@ def check_cover_letter_popup():
 
 def click_all_jobs_on_the_page():
     global counter
-
-    job_links = driver.find_elements(By.XPATH, '//a[@data-qa="vacancy-serp__vacancy_response"]')
+    try:
+        test_links_presence = wait.until(EC.presence_of_element_located((By.XPATH, '//a[@data-qa="vacancy-serp__vacancy_response"]')))
+        if test_links_presence: job_links = driver.find_elements(By.XPATH, '//a[@data-qa="vacancy-serp__vacancy_response"]')
+    except TimeoutException:
+        return
+    except StaleElementReferenceException:
+        return
     for link in job_links:
         a = link.get_attribute('href')
         # Open a new window
@@ -149,52 +154,57 @@ def clear_region():
     except TimeoutException:
         return #exit the function
 
-driver.get(login_page)
-wait.until(EC.element_to_be_clickable((By.NAME, 'login'))).send_keys(username)
+def login():
+    driver.get(login_page)
+    wait.until(EC.element_to_be_clickable((By.NAME, 'login'))).send_keys(username)
 
-show_more_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='expand-login-by-password']")))
-driver.execute_script('arguments[0].click()', show_more_button)
+    show_more_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='expand-login-by-password']")))
+    driver.execute_script('arguments[0].click()', show_more_button)
 
-wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='password']"))).send_keys(password)
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='password']"))).send_keys(password)
 
-login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='account-login-submit']")))
-driver.execute_script('arguments[0].click()', login_button)
+    login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='account-login-submit']")))
+    driver.execute_script('arguments[0].click()', login_button)
 
-#advanced search button becoming stale sometimes, that is why I'm setting the wait time, also pick between JS and Action_Chains clicking method:
-driver.implicitly_wait(s)
-action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="advanced-search"]')))).perform()
-# advanced_search_switch = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="advanced-search"]')))
-# driver.execute_script('arguments[0].click()', advanced_search_switch)
+def advanced_search():
+    action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="advanced-search"]')))).perform()
 
-if region == "global":
-    clear_region()
+    if region == "global":
+        clear_region()
+        #enable if you want to select certain countries, right now it selects ALL countries by default:
+        #select_all_countries()
+
+    advanced_search_textarea = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@data-qa="vacancysearch__keywords-input"]')))
+    driver.execute_script('arguments[0].value = arguments[1]', advanced_search_textarea, job_search_query)
+
+    no_agency = driver.find_element(By.XPATH, '//input[@data-qa="advanced-search__label-item_not_from_agency"]')
+    driver.execute_script('arguments[0].click()', no_agency)
+
+    quantity = driver.find_element(By.XPATH, '//input[@data-qa="advanced-search__items_on_page-item_100"]')
+    driver.execute_script("arguments[0].setAttribute('value','300')", quantity)
+    driver.execute_script("arguments[0].click()", quantity)
+
+    advanced_search_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-submit-button"]')))
+    driver.execute_script("arguments[0].click()", advanced_search_submit_button)
+
+def main():
+    global counter
+
+    login()
+    advanced_search()
     
-    #enable if you want to select certain countries, right now it selects ALL countries by default:
-    #select_all_countries()
+    while counter < 200: #there is a limit of 200 resumes per day on hh.ru
+        click_all_jobs_on_the_page()
 
-advanced_search_textarea = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@data-qa="vacancysearch__keywords-input"]')))
-driver.execute_script('arguments[0].value = arguments[1]', advanced_search_textarea, job_search_query)
+        # Switch back to the first tab with search results
+        driver.switch_to.window(driver.window_handles[0])
 
-no_agency = driver.find_element(By.XPATH, '//input[@data-qa="advanced-search__label-item_not_from_agency"]')
-driver.execute_script('arguments[0].click()', no_agency)
+        #take in another hundred of results:
+        next_page_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="pager-next"]')))
+        driver.execute_script("arguments[0].click()", next_page_button)
 
-quantity = driver.find_element(By.XPATH, '//input[@data-qa="advanced-search__items_on_page-item_100"]')
-driver.execute_script("arguments[0].setAttribute('value','300')", quantity)
-driver.execute_script("arguments[0].click()", quantity)
+    # Close the only tab, will also close the browser.
+    driver.close()
+    driver.quit()
 
-advanced_search_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-submit-button"]')))
-driver.execute_script("arguments[0].click()", advanced_search_submit_button)
-driver.implicitly_wait(s)
-driver.refresh()
-while counter < 200: #there is a limit of 200 resumes per day on hh.ru
-    click_all_jobs_on_the_page()
-
-    # Switch back to the first tab with search results
-    driver.switch_to.window(driver.window_handles[0])
-
-    #take in another hundred of results:
-    next_page_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="pager-next"]')))
-    driver.execute_script("arguments[0].click()", next_page_button)
-
-# Close the only tab, will also close the browser.
-driver.close()
+main() #run the script, starting from the main function
