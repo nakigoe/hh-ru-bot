@@ -47,7 +47,7 @@ username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
 job_search_query = "Python"
-exclude = "angular, php, sharepoint, react, vue, Rust, golang, go, java, vba, node.js, медсестра, медбрат, врач, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, электрик, электромонтёр, слесарь, кассир, грузчик, игр, игра, игры, games, gambling, gamble, tobacco"
+exclude = "angular, php, sharepoint, react, vue, Rust, golang, go, java, vba, node.js, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, games, gambling, gamble, tobacco"
 region = "global"
 
 def select_all_countries():
