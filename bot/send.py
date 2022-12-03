@@ -48,6 +48,7 @@ username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
 job_search_query = "English"
+exclude = "angular, php, sharepoint, react, vue, Rust, golang, go, java, vba, node.js, повар, сушист, бармен, электрик, электромонтёр, слесарь, кассир, грузчик, игр, игра, игры, game, games, gambling, gamble"
 region = "global"
 
 def select_all_countries():
@@ -177,11 +178,13 @@ def advanced_search():
     advanced_search_textarea = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@data-qa="vacancysearch__keywords-input"]')))
     driver.execute_script('arguments[0].value = arguments[1]', advanced_search_textarea, job_search_query)
 
+    exclude_these_results = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@data-qa="vacancysearch__keywords-excluded-input"]')))
+    driver.execute_script('arguments[0].value = arguments[1]', exclude_these_results, exclude)
+    
     no_agency = driver.find_element(By.XPATH, '//input[@data-qa="advanced-search__label-item_not_from_agency"]')
     driver.execute_script('arguments[0].click()', no_agency)
 
     quantity = driver.find_element(By.XPATH, '//input[@data-qa="advanced-search__items_on_page-item_100"]')
-    driver.execute_script("arguments[0].setAttribute('value','300')", quantity)
     driver.execute_script("arguments[0].click()", quantity)
 
     advanced_search_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-submit-button"]')))
