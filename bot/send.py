@@ -46,24 +46,24 @@ text_file.close()
 username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
-job_search_query = "English"
-exclude = "angular, php, sharepoint, react, vue, Rust, golang, go, java, vba, node.js, повар, сушист, бармен, электрик, электромонтёр, слесарь, кассир, грузчик, игр, игра, игры, game, games, gambling, gamble"
+job_search_query = "Python"
+exclude = "angular, php, sharepoint, react, vue, Rust, golang, go, java, vba, node.js, повар, сушист, бармен, электрик, электромонтёр, слесарь, кассир, грузчик, игр, игра, игры, games, gambling, gamble"
 region = "global"
 
 def select_all_countries():
-    region_select_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-region-selectFromList"]')))
+    region_select_button = wait.until(EC.element_to_be_clickable(By.XPATH, '//button[@data-qa="advanced-search-region-selectFromList"]'))
     driver.execute_script("arguments[0].click()", region_select_button)
     #select all countries:
     countries = driver.find_elements(By.XPATH, '//input[@name="bloko-tree-selector-default-name-0"]')
     for country in countries:
         driver.execute_script("arguments[0].click()", country)
     #submit selected countries:
-    region_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="bloko-tree-selector-popup-submit"]')))
+    region_submit_button = wait.until(EC.element_to_be_clickable(By.XPATH, '//button[@data-qa="bloko-tree-selector-popup-submit"]'))
     driver.execute_script("arguments[0].click()", region_submit_button)
 
 def international_ok():
     try:
-        international = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="relocation-warning-confirm"]')))
+        international = wait.until(EC.element_to_be_clickable(By.XPATH, '//button[@data-qa="relocation-warning-confirm"]'))
         driver.execute_script("arguments[0].click()", international)
     except TimeoutException:
         return #exit the function
@@ -72,16 +72,16 @@ def international_ok():
 def check_cover_letter_popup():
     global counter
     try:
-        cover_letter_popup = wait.until(EC.element_to_be_clickable((By.XPATH, '//textarea[@data-qa="vacancy-response-popup-form-letter-input"]')))
+        cover_letter_popup = wait.until(EC.element_to_be_clickable(By.XPATH, '//textarea[@data-qa="vacancy-response-popup-form-letter-input"]'))
         driver.execute_script('arguments[0].innerHTML = arguments[1]', cover_letter_popup, message)
 
         #experimenting with unresponsive button:
         cover_letter_popup.send_keys(Keys.ENTER) 
         driver.implicitly_wait(s)
-        action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))).perform()
+        action.double_click(wait.until(EC.element_to_be_clickable(By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]'))).perform()
         
         #unresponsive after another country popup:
-        popup_cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))
+        popup_cover_letter_submit_button = wait.until(EC.element_to_be_clickable(By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]'))
         driver.execute_script("arguments[0].click()", popup_cover_letter_submit_button)
         counter += 1
         return 1
@@ -91,7 +91,7 @@ def check_cover_letter_popup():
 def click_all_jobs_on_the_page():
     global counter
     try:
-        test_links_presence = wait.until(EC.presence_of_element_located((By.XPATH, '//a[@data-qa="vacancy-serp__vacancy_response"]')))
+        test_links_presence = wait.until(EC.presence_of_element_located(By.XPATH, '//a[@data-qa="vacancy-serp__vacancy_response"]'))
         if test_links_presence: job_links = driver.find_elements(By.XPATH, '//a[@data-qa="vacancy-serp__vacancy_response"]')
     except TimeoutException:
         return
@@ -110,21 +110,21 @@ def click_all_jobs_on_the_page():
             #check if the application have been sent to the server by page opening, if not, press the response button manually, try up to 6 times:
             for i in range(5):
                 try:
-                    if wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="vacancy-actions_responded"]'))):
+                    if wait.until(EC.presence_of_element_located(By.XPATH, '//div[@class="vacancy-actions_responded"]')):
                         break
                 except TimeoutException:
                     driver.refresh()
                     driver.implicitly_wait(s)
-                    action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-link-top"]')))).perform()
+                    action.double_click(wait.until(EC.element_to_be_clickable(By.XPATH, '//button[@data-qa="vacancy-response-link-top"]'))).perform()
 
-            cover_letter_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]')))
+            cover_letter_button = wait.until(EC.element_to_be_clickable(By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]'))
             driver.execute_script("arguments[0].click()", cover_letter_button)
-            cover_letter_text = wait.until(EC.element_to_be_clickable((By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea')))
+            cover_letter_text = wait.until(EC.element_to_be_clickable(By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea'))
             driver.execute_script('arguments[0].innerHTML = arguments[1]', cover_letter_text, message)
-            cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))
+            cover_letter_submit_button = wait.until(EC.element_to_be_clickable(By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]'))
             driver.execute_script("arguments[0].click()", cover_letter_submit_button)
             #wait until submitted to the server:
-            wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
+            wait.until(EC.presence_of_element_located(By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]'))
             counter +=1
             driver.close()
         except TimeoutException:
@@ -139,15 +139,15 @@ def click_all_jobs_on_the_page():
 
 def clear_region():
     try:
-        check_region = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/span')))
+        check_region = wait.until(EC.element_to_be_clickable(By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/span'))
 
         while check_region:
-            clear_region = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/button[@data-qa="bloko-tag__cross"]')))
+            clear_region = wait.until(EC.element_to_be_clickable(By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/button[@data-qa="bloko-tag__cross"]'))
             driver.execute_script("arguments[0].click()", clear_region)
             
             #check if multiple regions are selected from the previous searches
             try:
-                check_region = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/span')))
+                check_region = wait.until(EC.element_to_be_clickable(By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/span'))
             except TimeoutException:
                 return #exit the function
 
@@ -156,37 +156,37 @@ def clear_region():
 
 def login():
     driver.get(login_page)
-    wait.until(EC.element_to_be_clickable((By.NAME, 'login'))).send_keys(username)
+    wait.until(EC.element_to_be_clickable(By.NAME, 'login')).send_keys(username)
 
-    show_more_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='expand-login-by-password']")))
+    show_more_button = wait.until(EC.element_to_be_clickable(By.XPATH, "//button[@data-qa='expand-login-by-password']"))
     driver.execute_script('arguments[0].click()', show_more_button)
 
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='password']"))).send_keys(password)
+    wait.until(EC.element_to_be_clickable(By.XPATH, "//input[@type='password']")).send_keys(password)
 
-    login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='account-login-submit']")))
+    login_button = wait.until(EC.element_to_be_clickable(By.XPATH, "//button[@data-qa='account-login-submit']"))
     driver.execute_script('arguments[0].click()', login_button)
 
 def advanced_search():
-    action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="advanced-search"]')))).perform()
+    action.double_click(wait.until(EC.element_to_be_clickable(By.XPATH, '//a[@data-qa="advanced-search"]'))).perform()
 
     if region == "global":
         clear_region()
         #enable if you want to select certain countries, right now it selects ALL countries by default:
         #select_all_countries()
 
-    advanced_search_textarea = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@data-qa="vacancysearch__keywords-input"]')))
+    advanced_search_textarea = wait.until(EC.element_to_be_clickable(By.XPATH, '//input[@data-qa="vacancysearch__keywords-input"]'))
     driver.execute_script('arguments[0].value = arguments[1]', advanced_search_textarea, job_search_query)
 
-    exclude_these_results = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@data-qa="vacancysearch__keywords-excluded-input"]')))
+    exclude_these_results = wait.until(EC.element_to_be_clickable(By.XPATH, '//input[@data-qa="vacancysearch__keywords-excluded-input"]'))
     driver.execute_script('arguments[0].value = arguments[1]', exclude_these_results, exclude)
-    
+
     no_agency = driver.find_element(By.XPATH, '//input[@data-qa="advanced-search__label-item_not_from_agency"]')
     driver.execute_script('arguments[0].click()', no_agency)
 
     quantity = driver.find_element(By.XPATH, '//input[@data-qa="advanced-search__items_on_page-item_100"]')
     driver.execute_script("arguments[0].click()", quantity)
 
-    advanced_search_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-submit-button"]')))
+    advanced_search_submit_button = wait.until(EC.element_to_be_clickable(By.XPATH, '//button[@data-qa="advanced-search-submit-button"]'))
     driver.execute_script("arguments[0].click()", advanced_search_submit_button)
 
 def main():
@@ -202,7 +202,7 @@ def main():
         driver.switch_to.window(driver.window_handles[0])
 
         #take in another hundred of results:
-        next_page_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="pager-next"]')))
+        next_page_button = wait.until(EC.element_to_be_clickable(By.XPATH, '//a[@data-qa="pager-next"]'))
         driver.execute_script("arguments[0].click()", next_page_button)
 
     # Close the only tab, will also close the browser.
