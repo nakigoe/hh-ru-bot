@@ -214,7 +214,7 @@ def advanced_search():
     driver.execute_script("arguments[0].click()", advanced_search_submit_button)
     
     #wait until the server sends results, server may be slow!
-    driver.implicitly_wait(s/2) #wait for 2.5 seconds, just in case, before submitting the next resume
+    driver.implicitly_wait(s) #wait for 2.5 seconds, just in case, before submitting the next resume
 
 def main():
     global counter
