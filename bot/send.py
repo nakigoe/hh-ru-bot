@@ -23,6 +23,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.edge import service
+import os
+os.system("cls") #clear screen from previous sessions
 
 options = webdriver.EdgeOptions()
 options.use_chromium = True
@@ -39,14 +41,20 @@ driver = webdriver.Edge(service=my_service, options=options)
 action = ActionChains(driver)
 wait = WebDriverWait(driver,s)
 
+#cover letter
 text_file = open("cover-letter-ru.txt", "r")
 message = text_file.read()
+text_file.close()
+
+#simple answer to all questions, showcase of all Your works!
+text_file = open("links-list.txt", "r")
+answer = text_file.read()
 text_file.close()
 
 username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
-job_search_query = "Python"
+job_search_query = "C#"
 exclude = "angular, php, sharepoint, react, vue, Rust, golang, go, java, vba, node.js, delphi, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, games, gambling, gamble, tobacco"
 region = "global"
 
@@ -77,7 +85,6 @@ def check_cover_letter_popup():
 
         #experimenting with unresponsive button:
         cover_letter_popup.send_keys(Keys.ENTER) 
-        driver.implicitly_wait(s)
         action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))).perform()
         
         #unresponsive after another country popup:
@@ -87,55 +94,72 @@ def check_cover_letter_popup():
         return 1
     except TimeoutException:
         return 0 #exit the function
+    
+def answer_questions():
+    try: 
+        test_questions_presence = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="task-body"]//textarea')))
+        if test_questions_presence: 
+            questions = driver.find_elements(By.XPATH, '//div[@data-qa="task-body"]//textarea')
+            for question in questions:
+                # driver.execute_script('arguments[0].innerHTML = arguments[1]', question, answer)
+                question.send_keys(answer)
+    except TimeoutException:
+        return
+    except StaleElementReferenceException:
+        return
 
 def click_all_jobs_on_the_page():
     global counter
     try:
         test_links_presence = wait.until(EC.presence_of_element_located((By.XPATH, '//a[@data-qa="vacancy-serp__vacancy_response"]')))
-        if test_links_presence: job_links = driver.find_elements(By.XPATH, '//a[@data-qa="vacancy-serp__vacancy_response"]')
     except TimeoutException:
         return
     except StaleElementReferenceException:
         return
-    for link in job_links:
-        a = link.get_attribute('href')
-        # Open a new window
-        driver.execute_script("window.open('');")
-        driver.switch_to.window(driver.window_handles[1])
-        driver.get(a)
-        try:
-            # the page opening is already a response!
-            international_ok()
+    if test_links_presence: 
+        job_links = driver.find_elements(By.XPATH, '//a[@data-qa="vacancy-serp__vacancy_response"]')
+        for link in job_links:
+            a = link.get_attribute('href')
+            # Open a new window
+            driver.execute_script("window.open('');")
+            driver.switch_to.window(driver.window_handles[1])
+            driver.get(a)
+            try:                            
+                international_ok()
+                answer_questions()
 
-            #check if the application have been sent to the server by page opening, if not, press the response button manually, try up to 6 times:
-            for i in range(5):
-                try:
-                    if wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="vacancy-actions_responded"]'))):
-                        break
-                except TimeoutException:
-                    driver.refresh()
-                    driver.implicitly_wait(s)
-                    action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-link-top"]')))).perform()
-
-            cover_letter_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]')))
-            driver.execute_script("arguments[0].click()", cover_letter_button)
-            cover_letter_text = wait.until(EC.element_to_be_clickable((By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea')))
-            driver.execute_script('arguments[0].innerHTML = arguments[1]', cover_letter_text, message)
-            cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))
-            driver.execute_script("arguments[0].click()", cover_letter_submit_button)
-            #wait until submitted to the server:
-            wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
-            counter +=1
-            driver.close()
-        except TimeoutException:
-            if check_cover_letter_popup() == 1:
+                cover_letter_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]')))
+                driver.execute_script("arguments[0].click()", cover_letter_button)
+                cover_letter_text = wait.until(EC.element_to_be_clickable((By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea')))
+                driver.execute_script('arguments[0].innerHTML = arguments[1]', cover_letter_text, message)
+                
+                # cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))                
+                # driver.execute_script("arguments[0].click()", cover_letter_submit_button)
+                
+                action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))).perform()
+                
+                #wait until submitted to the server:
+                driver.implicitly_wait(s)
+                wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
+                counter +=1
+                driver.close()
+            except TimeoutException:
+                #the page opening is already a response! check if the application have been sent to the server by page opening, if not, press the response button manually, try up to 6 times:
+                # for i in range(5):
+                #     try:
+                #         if wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="vacancy-actions_responded"]'))):
+                #             break
+                #     except TimeoutException:
+                #         driver.refresh()
+                #         action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-link-top"]')))).perform()
+                if check_cover_letter_popup() == 1:
+                    driver.close()
+                    driver.switch_to.window(driver.window_handles[0])
+                    continue 
                 driver.close()
                 driver.switch_to.window(driver.window_handles[0])
-                continue 
-            driver.close()
+                continue
             driver.switch_to.window(driver.window_handles[0])
-            continue
-        driver.switch_to.window(driver.window_handles[0])
 
 def clear_region():
     try:
@@ -188,6 +212,9 @@ def advanced_search():
 
     advanced_search_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-submit-button"]')))
     driver.execute_script("arguments[0].click()", advanced_search_submit_button)
+    
+    #wait until the server sends results, server may be slow!
+    driver.implicitly_wait(s/2) #wait for 2.5 seconds, just in case, before submitting the next resume
 
 def main():
     global counter
