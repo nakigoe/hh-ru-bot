@@ -34,7 +34,7 @@ my_service=service.Service(r'msedgedriver.exe')
 options.page_load_strategy = 'eager' #do not wait for images to load
 options.add_experimental_option("detach", True)
 
-s = 5 #time to wait for a single component on the page to appear, in seconds; increase it if you get server-side errors «try again later»
+s = 10 #time to wait for a single component on the page to appear, in seconds; increase it if you get server-side errors «try again later»
 counter = 0
 
 driver = webdriver.Edge(service=my_service, options=options)
