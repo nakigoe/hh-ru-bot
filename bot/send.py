@@ -34,7 +34,7 @@ my_service=service.Service(r'msedgedriver.exe')
 options.page_load_strategy = 'eager' #do not wait for images to load
 options.add_experimental_option("detach", True)
 
-s = 10 #time to wait for a single component on the page to appear, in seconds; increase it if you get server-side errors «try again later»
+s = 5 #time to wait for a single component on the page to appear, in seconds; increase it if you get server-side errors «try again later»
 counter = 0
 
 driver = webdriver.Edge(service=my_service, options=options)
@@ -46,7 +46,7 @@ text_file = open("cover-letter-ru.txt", "r")
 message = text_file.read()
 text_file.close()
 
-#simple answer to all questions, showcase of all Your works!
+#simple answer to all questions, showcase of all my works!
 text_file = open("links-list.txt", "r")
 answer = text_file.read()
 text_file.close()
@@ -55,7 +55,7 @@ username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
 job_search_query = "C#"
-exclude = "angular, php, sharepoint, react, vue, Rust, golang, go, java, vba, node.js, delphi, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, games, gambling, gamble, tobacco"
+exclude = "1C, angular, php, sharepoint, react, vue, Rust, golang, go, java, vba, node.js, delphi, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, games, gambling, gamble, tobacco"
 region = "global"
 
 def select_all_countries():
@@ -107,7 +107,16 @@ def answer_questions():
         return
     except StaleElementReferenceException:
         return
-
+    
+def fill_in_cover_letter():
+    cover_letter_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]')))
+    driver.execute_script("arguments[0].click()", cover_letter_button)
+    
+    cover_letter_text = wait.until(EC.element_to_be_clickable((By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea')))
+    driver.execute_script('arguments[0].innerHTML = arguments[1]', cover_letter_text, message)
+    
+    action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))).perform()
+    
 def click_all_jobs_on_the_page():
     global counter
     try:
@@ -123,35 +132,17 @@ def click_all_jobs_on_the_page():
             # Open a new window
             driver.execute_script("window.open('');")
             driver.switch_to.window(driver.window_handles[1])
-            driver.get(a)
+            driver.get(a)            
             try:                            
                 international_ok()
                 answer_questions()
-
-                cover_letter_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]')))
-                driver.execute_script("arguments[0].click()", cover_letter_button)
-                cover_letter_text = wait.until(EC.element_to_be_clickable((By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea')))
-                driver.execute_script('arguments[0].innerHTML = arguments[1]', cover_letter_text, message)
-                
-                # cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))                
-                # driver.execute_script("arguments[0].click()", cover_letter_submit_button)
-                
-                action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))).perform()
-                
+                fill_in_cover_letter()                
                 #wait until submitted to the server:
-                driver.implicitly_wait(s)
                 wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
                 counter +=1
                 driver.close()
+                
             except TimeoutException:
-                #the page opening is already a response! check if the application have been sent to the server by page opening, if not, press the response button manually, try up to 6 times:
-                # for i in range(5):
-                #     try:
-                #         if wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="vacancy-actions_responded"]'))):
-                #             break
-                #     except TimeoutException:
-                #         driver.refresh()
-                #         action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-link-top"]')))).perform()
                 if check_cover_letter_popup() == 1:
                     driver.close()
                     driver.switch_to.window(driver.window_handles[0])
@@ -214,7 +205,7 @@ def advanced_search():
     driver.execute_script("arguments[0].click()", advanced_search_submit_button)
     
     #wait until the server sends results, server may be slow!
-    driver.implicitly_wait(s) #wait for 2.5 seconds, just in case, before submitting the next resume
+    driver.implicitly_wait(5) #wait for 5 seconds, just in case, for the server response
 
 def main():
     global counter
