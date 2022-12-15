@@ -54,8 +54,8 @@ text_file.close()
 username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
-job_search_query = "C#"
-exclude = "1C, angular, php, sharepoint, react, vue, Rust, golang, go, java, vba, node.js, delphi, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, games, gambling, gamble, tobacco"
+job_search_query = "c#"
+exclude = "1C, angular, php, sharepoint, react, vue, Rust, golang, go, java, vba, node.js, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, games, gambling, gamble, tobacco"
 region = "global"
 
 def select_all_countries():
@@ -219,9 +219,14 @@ def main():
         # Switch back to the first tab with search results
         driver.switch_to.window(driver.window_handles[0])
 
-        #take in another hundred of results:
-        next_page_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="pager-next"]')))
-        driver.execute_script("arguments[0].click()", next_page_button)
+        try:
+            #take in another hundred of results:
+            next_page_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="pager-next"]')))
+            driver.execute_script("arguments[0].click()", next_page_button)
+        except TimeoutException:
+            os.system("cls") #clear screen from unnecessary logs since the operation has completed successfully
+            print("It's either the hh.ru server has become undresponsive or you have reached the hh.ru limit of 200 resumes per day or all the links within the current search query have been clicked. \n 1) check if hh.ru is alive and responsive \n 2) check if you have reached the hh.ru limit of 200 resumes per day \n 3) check if you have clicked all the links available for the job search query. In that case change the job_search_query = value. \n \n Sincerely Yours, \n NAKIGOE.ORG")
+            break
 
     # Close the only tab, will also close the browser.
     driver.close()
