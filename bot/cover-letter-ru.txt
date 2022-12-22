@@ -26,7 +26,7 @@
 Инструменты и редакторы
  • Adobe Creative Cloud: Dreamweaver, Photoshop, Illustrator, InDesign, Acrobat
  • FontLab, FontCreator, FontForge
- • Microsoft: Word, Excel, Access, PowerPoint, VS Code, Visual Studio
+ • Microsoft: Word, Excel, Access, PowerPoint, Visio, VS Code, Visual Studio
  • Trados, Passolo (перевод HTML, DOC, PDF, InDesign, XML файлов)
  • AutoHotkey (программирование автозамены и печати специальных символов, в том числе для отдельных редакторов и языков)
  • Emmet (автоматизация написания HTML‑тэгов)
@@ -50,18 +50,21 @@
  • Учебник таджикского языка
  • Учебник по техникам освоения языков
  • Узкий японский шрифт для мобильных устройств
- • ASP·NET Core Blazor WebAssembly вебсайт: nakigoe.org
- • Bootstrap & jQuery & Leaflet вебсайт: maps.nakigoe.org
+ • ASP·NET Core Blazor WebAssembly вебсайт: https://nakigoe.org
+ • Bootstrap & jQuery & Leaflet вебсайт: https://maps.nakigoe.org
 
  • коммерческий проект (фриланс): настройка сайта на платформе Битрикс, CSS для мобильных устройств, полный список проделанных работ здесь (январь 2022): https://nakigoe.org/ru/articles/avtozvuk-spb.ru/ready.html
 
  • коммерческий проект (фриланс): построение графиков температуры моря, направления и силы морских волн, направления ветра в Питоне по данным в формате CSV, приходящих с морских датчиков, сентябрь-октябрь 2022 : https://github.com/nakigoe/sea
 
- • коммерческий проект (фриланс): Питон, библиотека Джанго, браузерное приложение для внутренней сети компании, которое отправляет файлы пользователя (PDF, фото) на удалённый сервер (Amazon S3): https://github.com/nakigoe/django-form
+ • коммерческий проект (фриланс): Питон, библиотека Джанго, браузерное приложение для внутренней сети компании, которое отправляет файлы пользователя (PDF, фото) на удалённый сервер Amazon S3: https://github.com/nakigoe/django-form
 
  • Питон, библиотека Selenium, бот для автоматической отправки резюме и сопроводительных писем на hh·ru,
 отправка 200 резюме с сопроводительными письмами за 15 минут одним кликом: https://github.com/nakigoe/hh-ru-bot
- 
+
+ • Питон, библиотека Selenium, бот для автоматической отправки резюме и сопроводительных писем на японском сайте работы en-gage.net
+отправка 5000 резюме с сопроводительными письмами за день одним кликом (знание японского обязательно): https://github.com/nakigoe/en-gage-net-bot
+
 Избранные статьи:
  • «Криптовалюта: звон монет»: https://nakigoe.org/ru/articles/crypto
  • «Как бросить курить»: https://nakigoe.org/ru/articles/quit
