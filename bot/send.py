@@ -90,7 +90,6 @@ def check_cover_letter_popup():
         #unresponsive after another country popup:
         popup_cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))
         driver.execute_script("arguments[0].click()", popup_cover_letter_submit_button)
-        driver.implicitly_wait(10) #server might be slow
         #wait until submitted to the server:
         wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
         counter += 1
