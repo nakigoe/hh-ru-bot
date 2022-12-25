@@ -55,7 +55,7 @@ username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
 job_search_query = "c#"
-exclude = "1C, angular, php, sharepoint, react, vue, typescript, Rust, golang, go, java, vba, node.js, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, games, gambling, gamble, tobacco"
+exclude = "Minecraft, blender, 1C, erlang, angular, php, sharepoint, react, React.JS, vue, Vue.JS, typescript, Rust, golang, go, java, vba, node.js, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, games, gambling, gamble, tobacco"
 region = "global"
 
 def select_all_countries():
@@ -90,6 +90,9 @@ def check_cover_letter_popup():
         #unresponsive after another country popup:
         popup_cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))
         driver.execute_script("arguments[0].click()", popup_cover_letter_submit_button)
+        driver.implicitly_wait(10) #server might be slow
+        #wait until submitted to the server:
+        wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
         counter += 1
         return 1
     except TimeoutException:
@@ -109,13 +112,24 @@ def answer_questions():
         return
     
 def fill_in_cover_letter():
-    cover_letter_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]')))
-    driver.execute_script("arguments[0].click()", cover_letter_button)
-    
-    cover_letter_text = wait.until(EC.element_to_be_clickable((By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea')))
-    driver.execute_script('arguments[0].innerHTML = arguments[1]', cover_letter_text, message)
-    
-    action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))).perform()
+    global counter
+    try:
+        cover_letter_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]')))
+        driver.execute_script("arguments[0].click()", cover_letter_button)
+        
+        cover_letter_text = wait.until(EC.element_to_be_clickable((By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea')))
+        driver.execute_script('arguments[0].innerHTML = arguments[1]', cover_letter_text, message)
+        
+        action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))).perform()
+                        
+        #wait until submitted to the server:
+        wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
+        counter +=1
+        return 1
+    except TimeoutException:
+        return 0
+    except StaleElementReferenceException:
+        return 0
     
 def click_all_jobs_on_the_page():
     global counter
@@ -132,24 +146,32 @@ def click_all_jobs_on_the_page():
             # Open a new window
             driver.execute_script("window.open('');")
             driver.switch_to.window(driver.window_handles[1])
-            driver.get(a)            
-            try:                            
-                international_ok()
-                answer_questions()
-                fill_in_cover_letter()                
-                #wait until submitted to the server:
-                wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
-                counter +=1
-                driver.close()
-                
-            except TimeoutException:
-                if check_cover_letter_popup() == 1:
-                    driver.close()
-                    driver.switch_to.window(driver.window_handles[0])
-                    continue 
+            driver.get(a) 
+            driver.implicitly_wait(10) #server might be slow
+            if fill_in_cover_letter() == 1:
                 driver.close()
                 driver.switch_to.window(driver.window_handles[0])
                 continue
+            elif check_cover_letter_popup() == 1:
+                driver.close()
+                driver.switch_to.window(driver.window_handles[0])
+                continue
+            else:  
+                try:                            
+                    international_ok()
+                    answer_questions()
+                    if check_cover_letter_popup() == 1:
+                        driver.close()
+                        driver.switch_to.window(driver.window_handles[0])
+                        continue
+                    fill_in_cover_letter()
+                    driver.close()
+                    
+                except TimeoutException:
+                    driver.close()
+                    driver.switch_to.window(driver.window_handles[0])
+                    continue
+                
             driver.switch_to.window(driver.window_handles[0])
 
 def clear_region():
@@ -205,7 +227,7 @@ def advanced_search():
     driver.execute_script("arguments[0].click()", advanced_search_submit_button)
     
     #wait until the server sends results, server may be slow!
-    driver.implicitly_wait(5) #wait for 5 seconds, just in case, for the server response
+    driver.implicitly_wait(10) #wait for 5 seconds, just in case, for the server response
 
 def main():
     global counter
@@ -225,7 +247,7 @@ def main():
             driver.execute_script("arguments[0].click()", next_page_button)
         except TimeoutException:
             os.system("cls") #clear screen from unnecessary logs since the operation has completed successfully
-            print("It's either the hh.ru server has become undresponsive or you have reached the hh.ru limit of 200 resumes per day or all the links within the current search query have been clicked. \n 1) check if hh.ru is alive and responsive \n 2) check if you have reached the hh.ru limit of 200 resumes per day \n 3) check if you have clicked all the links available for the job search query. In that case change the job_search_query = value. \n \n Sincerely Yours, \n NAKIGOE.ORG")
+            print("It's either the hh.ru server has become undresponsive or you have reached the hh.ru limit of 200 resumes per day or all the links within the current search query have been clicked. \n 1) check if hh.ru is alive and responsive \n 2) check if you have reached the limit \n 3) check if you have clicked all the links available for the job search query. In that case change the 'job_search_query = ' value. \n \n Sincerely Yours, \n NAKIGOE.ORG")
             break
 
     # Close the only tab, will also close the browser.
