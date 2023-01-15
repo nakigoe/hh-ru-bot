@@ -1,14 +1,9 @@
-Посмотрите, пожалуйста, выполненные работы:
-C++, C#     https://github.com/nakigoe/uni
-Python      https://github.com/nakigoe/hh-ru-bot
-Python      https://github.com/nakigoe/en-gage-net-bot
-Python      https://github.com/nakigoe/sea
-Python      https://github.com/nakigoe/django-form
-YAML        https://github.com/nakigoe/yml
-
 сайты: 
 C# Blazor WebAssembly            https://nakigoe.org
 Leaflet & jQuery & Bootstrap     https://maps.nakigoe.org
+
+GitHub:	
+https://github.com/nakigoe?tab=repositories
 
 список умений:
 https://nakigoe.org/_PDF/CV-ru.pdf
