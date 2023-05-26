@@ -56,9 +56,23 @@ username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
 job_search_query = "c#"
-exclude = "Minecraft, blender, 1C, bitrix, erlang, angular, php, sharepoint, react, React.JS, vue, Vue.JS, typescript, Rust, golang, go, java, vba, node.js, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, games, gambling, gamble, tobacco"
+exclude = "Minecraft, blender, 1C, bitrix, wordpress, erlang, angular, sharepoint, react, React.JS, vue, Vue.JS, typescript, Rust, golang, go, java, vba, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, games, gambling, gamble, tobacco"
 region = "global"
 
+def scroll_to_bottom(): 
+    reached_page_end= False
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    
+    #expand the skills list:
+    while not reached_page_end:
+        driver.execute_script("window.scrollTo(0,document.body.scrollHeight);")
+        time.sleep(2)
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if last_height == new_height:
+            reached_page_end = True
+        else:
+            last_height = new_height
+            
 def select_all_countries():
     region_select_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-region-selectFromList"]')))
     driver.execute_script("arguments[0].click()", region_select_button)
@@ -97,10 +111,12 @@ def check_cover_letter_popup():
         return 1
     except TimeoutException:
         return 0 #exit the function
+    except StaleElementReferenceException:
+        return 0 
     
 def answer_questions():
     try: 
-        test_questions_presence = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="task-body"]//textarea')))
+        test_questions_presence = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="task-body"]//textarea')))
         if test_questions_presence: 
             questions = driver.find_elements(By.XPATH, '//div[@data-qa="task-body"]//textarea')
             for question in questions:
@@ -113,6 +129,7 @@ def answer_questions():
     
 def fill_in_cover_letter():
     global counter
+    scroll_to_bottom()
     try:
         cover_letter_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-toggle"]')))
         driver.execute_script("arguments[0].click()", cover_letter_button)
@@ -133,6 +150,7 @@ def fill_in_cover_letter():
     
 def click_all_jobs_on_the_page():
     global counter
+    scroll_to_bottom()
     try:
         test_links_presence = wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(., "Откликнуться")]')))
     except TimeoutException:

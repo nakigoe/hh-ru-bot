@@ -28,10 +28,6 @@
 ### Установите библиотеки (откройте командную строку):
 
   •  Selenium `pip install selenium`
-
-### Установите Edge-driver в папку бота:
-
-  •  https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
   
 ### Запускайте!
 
