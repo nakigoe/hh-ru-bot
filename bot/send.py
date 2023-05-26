@@ -9,7 +9,7 @@
 Code is written by Maxim Angel, aka Nakigoe
 You can always find the newest version at https://github.com/nakigoe/hh-ru-bot
 contact me for Python and C# lessons at nakigoetenshi@gmail.com
-$50 for 2 hours lesson
+$60 for 1 hours lesson
 
 Put stars and share!!!
 '''
@@ -23,6 +23,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.edge import service
+import time
 import os
 os.system("cls") #clear screen from previous sessions
 
@@ -34,7 +35,7 @@ my_service=service.Service(r'msedgedriver.exe')
 options.page_load_strategy = 'eager' #do not wait for images to load
 options.add_experimental_option("detach", True)
 
-s = 5 #time to wait for a single component on the page to appear, in seconds; increase it if you get server-side errors «try again later»
+s = 10 #time to wait for a single component on the page to appear, in seconds; increase it if you get server-side errors «try again later»
 counter = 0
 
 driver = webdriver.Edge(service=my_service, options=options)
@@ -54,8 +55,8 @@ text_file.close()
 username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
-job_search_query = "c#"
-exclude = "Minecraft, blender, 1C, erlang, angular, php, sharepoint, react, React.JS, vue, Vue.JS, typescript, Rust, golang, go, java, vba, node.js, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, games, gambling, gamble, tobacco"
+job_search_query = "web full stack"
+exclude = "Minecraft, Unity, blender, 1C, 1С, bitrix, erlang, angular, laravel, sharepoint, react, React.JS, vue, Vue.JS, typescript, Rust, golang, go, java, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, вейп, вейпинг, games, gambling, gamble, tobacco, vape, vaping"
 region = "global"
 
 def select_all_countries():
@@ -90,12 +91,13 @@ def check_cover_letter_popup():
         #unresponsive after another country popup:
         popup_cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))
         driver.execute_script("arguments[0].click()", popup_cover_letter_submit_button)
-        #wait until submitted to the server:
-        wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
+        time.sleep(1)
+        #wait until submitted to the server: 
+        wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="vacancy-actions_responded"]')))
         counter += 1
-        return 1
+        return 0
     except TimeoutException:
-        return 0 #exit the function
+        return 1 #exit the function
     
 def answer_questions():
     try: 
@@ -124,34 +126,46 @@ def fill_in_cover_letter():
         #wait until submitted to the server:
         wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
         counter +=1
-        return 1
+        return 0
     except TimeoutException:
-        return 0
+        return 1
     except StaleElementReferenceException:
-        return 0
+        return 1
     
 def click_all_jobs_on_the_page():
     global counter
     try:
-        test_links_presence = wait.until(EC.presence_of_element_located((By.XPATH, '//a[@data-qa="vacancy-serp__vacancy_response"]')))
+        test_links_presence = wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(., "Откликнуться")]')))
     except TimeoutException:
         return
     except StaleElementReferenceException:
         return
     if test_links_presence: 
-        job_links = driver.find_elements(By.XPATH, '//a[@data-qa="vacancy-serp__vacancy_response"]')
+        job_links = driver.find_elements(By.XPATH, '//a[contains(., "Откликнуться")]')
         for link in job_links:
             a = link.get_attribute('href')
             # Open a new window
             driver.execute_script("window.open('');")
             driver.switch_to.window(driver.window_handles[1])
             driver.get(a) 
-            driver.implicitly_wait(10) #server might be slow
-            if fill_in_cover_letter() == 1:
+            
+            #check for a loading error (server might be overloaded)
+            # try:
+            #     test_error_message = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="bloko-translate-guard"]')))
+            # except TimeoutException:
+            #     do = "nothing"
+            # except StaleElementReferenceException:
+            #     do = "nothing"
+            # if test_error_message != None and test_error_message.get_attribute('innerHTML') == "Произошла ошибка, попробуйте ещё раз":
+            #     action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="vacancy-response-link-top"]')))).perform()     
+                   
+            if fill_in_cover_letter() == 0:
                 driver.close()
                 driver.switch_to.window(driver.window_handles[0])
                 continue
-            elif check_cover_letter_popup() == 1:
+            elif check_cover_letter_popup() == 0:
+                driver.close()
+                driver.switch_to.window(driver.window_handles[0])
                 driver.close()
                 driver.switch_to.window(driver.window_handles[0])
                 continue
@@ -159,7 +173,7 @@ def click_all_jobs_on_the_page():
                 try:                            
                     international_ok()
                     answer_questions()
-                    if check_cover_letter_popup() == 1:
+                    if check_cover_letter_popup() == 0:
                         driver.close()
                         driver.switch_to.window(driver.window_handles[0])
                         continue
@@ -194,9 +208,10 @@ def login():
     driver.get(login_page)
     wait.until(EC.element_to_be_clickable((By.NAME, 'login'))).send_keys(username)
 
-    show_more_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='expand-login-by-password']")))
-    driver.execute_script('arguments[0].click()', show_more_button)
-
+    show_more_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="expand-login-by-password"]')))
+    action.click(show_more_button).perform()
+    time.sleep(5)
+    
     wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='password']"))).send_keys(password)
 
     login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='account-login-submit']")))
