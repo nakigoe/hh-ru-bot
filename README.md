@@ -25,6 +25,10 @@
 
   •  https://www.python.org/downloads/
 
+### Установите PIP, если он не установился с Python автоматически:
+
+  •  https://pip.pypa.io/en/stable/installation/
+
 ### Установите библиотеки (откройте командную строку):
 
   •  Selenium `pip install selenium`
