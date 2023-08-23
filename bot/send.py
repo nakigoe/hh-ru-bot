@@ -252,6 +252,7 @@ def main():
     global counter
 
     login()
+    time.sleep(10)
     advanced_search()
     
     while counter < 200: #there is a limit of 200 resumes per day on hh.ru
