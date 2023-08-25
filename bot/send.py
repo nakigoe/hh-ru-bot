@@ -1,19 +1,3 @@
-'''
-Автор: Ангел Максим Витальевич, то есть Nakigoe
-Свежая версия всегда здесь: https://github.com/nakigoe/hh-ru-bot
-Пишите, если Вы хотите получить уроки по C# и Питону: nakigoetenshi@gmail.com
-1000 рублей 2 часа один урок
-
-Ставьте звёзды и делитесь сноской на репозиторий со всеми!
-
-Code is written by Maxim Angel, aka Nakigoe
-You can always find the newest version at https://github.com/nakigoe/hh-ru-bot
-contact me for Python and C# lessons at nakigoetenshi@gmail.com
-$50 for 2 hours lesson
-
-Put stars and share!!!
-'''
-
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -24,16 +8,16 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.edge import service
 import os
-import time
 os.system("cls") #clear screen from previous sessions
+import time
 
 options = webdriver.EdgeOptions()
 options.use_chromium = True
 options.add_argument("start-maximized")
-# options.binary_location = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 my_service=service.Service(r'msedgedriver.exe')
 options.page_load_strategy = 'eager' #do not wait for images to load
 options.add_experimental_option("detach", True)
+options.add_argument('--no-sandbox')
 
 s = 10 #time to wait for a single component on the page to appear, in seconds; increase it if you get server-side errors «try again later»
 counter = 0
@@ -56,7 +40,7 @@ username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
 job_search_query = "c#"
-exclude = "Minecraft, blender, 1C, bitrix, wordpress, erlang, angular, sharepoint, react, React.JS, vue, Vue.JS, typescript, Rust, golang, go, java, vba, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, games, gambling, gamble, tobacco"
+exclude = "Minecraft, Unity, blender, wordpress, 1C, 1С, bitrix, erlang, angular, laravel, sharepoint, react, React.JS, vue, Vue.JS, typescript, Rust, golang, go, java, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, вейп, вейпинг, games, gambling, gamble, tobacco, vape, vaping"
 region = "global"
 
 def scroll_to_bottom(): 
@@ -105,23 +89,29 @@ def check_cover_letter_popup():
         #unresponsive after another country popup:
         popup_cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))
         driver.execute_script("arguments[0].click()", popup_cover_letter_submit_button)
-        #wait until submitted to the server:
-        wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
+        time.sleep(1)
+        #wait until submitted to the server: 
+        wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="vacancy-actions_responded"]')))
         counter += 1
-        return 1
+        return 0
     except TimeoutException:
-        return 0 #exit the function
+        return 1 #exit the function
     except StaleElementReferenceException:
-        return 0 
+        return 1 #exit the function (no cover letter button found)
     
 def answer_questions():
+    #create radio-buttons answers here!!!
     try: 
         test_questions_presence = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="task-body"]//textarea')))
         if test_questions_presence: 
-            questions = driver.find_elements(By.XPATH, '//div[@data-qa="task-body"]//textarea')
-            for question in questions:
-                # driver.execute_script('arguments[0].innerHTML = arguments[1]', question, answer)
-                question.send_keys(answer)
+            try:
+                questions = driver.find_elements(By.XPATH, '//div[@data-qa="task-body"]//textarea')
+                for question in questions:
+                    # driver.execute_script('arguments[0].innerHTML = arguments[1]', question, answer)
+                    question.send_keys(answer)
+                    bla=1 # breakpoint for testing, something somewhere in the code opens new tabs
+            except:
+                pass
     except TimeoutException:
         return
     except StaleElementReferenceException:
@@ -142,11 +132,11 @@ def fill_in_cover_letter():
         #wait until submitted to the server:
         wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
         counter +=1
-        return 1
+        return 0
     except TimeoutException:
-        return 0
+        return 1
     except StaleElementReferenceException:
-        return 0
+        return 1
     
 def click_all_jobs_on_the_page():
     global counter
@@ -165,28 +155,43 @@ def click_all_jobs_on_the_page():
             driver.execute_script("window.open('');")
             driver.switch_to.window(driver.window_handles[1])
             driver.get(a) 
-            driver.implicitly_wait(10) #server might be slow
-            if fill_in_cover_letter() == 1:
+            
+            #check for a loading error (server might be overloaded)
+            # try:
+            #     test_error_message = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="bloko-translate-guard"]')))
+            # except TimeoutException:
+            #     do = "nothing"
+            # except StaleElementReferenceException:
+            #     do = "nothing"
+            # if test_error_message != None and test_error_message.get_attribute('innerHTML') == "Произошла ошибка, попробуйте ещё раз":
+            #     action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="vacancy-response-link-top"]')))).perform()     
+                   
+            if fill_in_cover_letter() == 0:
                 driver.close()
+                time.sleep(1)
                 driver.switch_to.window(driver.window_handles[0])
                 continue
-            elif check_cover_letter_popup() == 1:
+            elif check_cover_letter_popup() == 0:
                 driver.close()
+                time.sleep(1)
                 driver.switch_to.window(driver.window_handles[0])
                 continue
             else:  
                 try:                            
                     international_ok()
                     answer_questions()
-                    if check_cover_letter_popup() == 1:
+                    if check_cover_letter_popup() == 0:
                         driver.close()
+                        time.sleep(1)
                         driver.switch_to.window(driver.window_handles[0])
                         continue
                     fill_in_cover_letter()
                     driver.close()
+                    time.sleep(1)
                     
                 except TimeoutException:
                     driver.close()
+                    time.sleep(1)
                     driver.switch_to.window(driver.window_handles[0])
                     continue
                 
@@ -215,15 +220,16 @@ def login():
 
     show_more_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="expand-login-by-password"]')))
     action.click(show_more_button).perform()
-    time.sleep(3)
-
+    
     wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='password']"))).send_keys(password)
 
+    time.sleep(10) # 10 senconds to enter the stupid KCapcha
+    
     login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='account-login-submit']")))
     driver.execute_script('arguments[0].click()', login_button)
 
 def advanced_search():
-    action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="advanced-search"]')))).perform()
+    action.click(wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="advanced-search"]')))).perform()
 
     if region == "global":
         clear_region()
@@ -246,7 +252,7 @@ def advanced_search():
     driver.execute_script("arguments[0].click()", advanced_search_submit_button)
     
     #wait until the server sends results, server may be slow!
-    time.sleep(3) #wait for 3 seconds, just in case, for the server response
+    time.sleep(3)
 
 def main():
     global counter
