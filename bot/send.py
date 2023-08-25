@@ -27,7 +27,7 @@ action = ActionChains(driver)
 wait = WebDriverWait(driver,s)
 
 #cover letter
-text_file = open("cover-letter-ru.txt", "r")
+text_file = open("cover-letter-ru-concise.txt", "r")
 message = text_file.read()
 text_file.close()
 
@@ -39,8 +39,8 @@ text_file.close()
 username = "nakigoetenshi@gmail.com"
 password = "Super_Mega_Password"
 login_page = "https://hh.ru/account/login"
-job_search_query = "c#"
-exclude = "Minecraft, Unity, blender, wordpress, 1C, 1С, bitrix, erlang, angular, laravel, sharepoint, react, React.JS, vue, Vue.JS, typescript, Rust, golang, go, java, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, вейп, вейпинг, games, gambling, gamble, tobacco, vape, vaping"
+job_search_query = "Assembly"
+exclude = "испанский, немецкий, Minecraft, Unity, blender, wordpress, 1C, 1С, bitrix, erlang, angular, laravel, sharepoint, react, React.JS, vue, Vue.JS, typescript, Rust, golang, go, java, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, вейп, вейпинг, games, gambling, gamble, tobacco, vape, vaping"
 region = "global"
 
 def scroll_to_bottom(): 
@@ -72,7 +72,7 @@ def international_ok():
     try:
         international = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="relocation-warning-confirm"]')))
         driver.execute_script("arguments[0].click()", international)
-    except TimeoutException:
+    except:
         return #exit the function
     driver.refresh()
 
@@ -89,15 +89,18 @@ def check_cover_letter_popup():
         #unresponsive after another country popup:
         popup_cover_letter_submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))
         driver.execute_script("arguments[0].click()", popup_cover_letter_submit_button)
-        time.sleep(1)
+        time.sleep(3)
+        try:
+            error = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="bloko-translate-guard"]')))
+            if error: return 0 # resume submitted but there was a server error. Just try this specific job the next time!
+        except:
+            pass
         #wait until submitted to the server: 
         wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="vacancy-actions_responded"]')))
         counter += 1
         return 0
-    except TimeoutException:
-        return 1 #exit the function
-    except StaleElementReferenceException:
-        return 1 #exit the function (no cover letter button found)
+    except:
+        return 1 #exit the function and provide an error return of 1 (do not increase the counter)
     
 def answer_questions():
     #create radio-buttons answers here!!!
@@ -136,7 +139,7 @@ def fill_in_cover_letter():
             pass
         #wait until submitted to the server:
         wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
-        counter +=1
+        counter += 1
         return 0
     except TimeoutException:
         return 1
@@ -160,14 +163,14 @@ def click_all_jobs_on_the_page():
             driver.execute_script("window.open('');")
             driver.switch_to.window(driver.window_handles[1])
             driver.get(a) 
+            time.sleep(3)
+            international_ok() # the problematic code to click the international popup
             
             #check for a loading error (server might be overloaded)
             # try:
             #     test_error_message = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="bloko-translate-guard"]')))
-            # except TimeoutException:
-            #     do = "nothing"
-            # except StaleElementReferenceException:
-            #     do = "nothing"
+            # except:
+            #   pass 
             # if test_error_message != None and test_error_message.get_attribute('innerHTML') == "Произошла ошибка, попробуйте ещё раз":
             #     action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="vacancy-response-link-top"]')))).perform()     
                    
@@ -182,8 +185,7 @@ def click_all_jobs_on_the_page():
                 driver.switch_to.window(driver.window_handles[0])
                 continue
             else:  
-                try:                            
-                    international_ok()
+                try:
                     answer_questions()
                     if check_cover_letter_popup() == 0:
                         driver.close()
@@ -263,7 +265,7 @@ def main():
     global counter
 
     login()
-    time.sleep(10)
+    time.sleep(3)
     advanced_search()
     
     while counter < 200: #there is a limit of 200 resumes per day on hh.ru
