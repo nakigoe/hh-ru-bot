@@ -27,7 +27,7 @@ action = ActionChains(driver)
 wait = WebDriverWait(driver,s)
 
 #cover letter
-text_file = open("cover-letter-ru-concise.txt", "r")
+text_file = open("cover-letter-ru.txt", "r")
 message = text_file.read()
 text_file.close()
 
