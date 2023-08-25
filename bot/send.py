@@ -107,9 +107,7 @@ def answer_questions():
             try:
                 questions = driver.find_elements(By.XPATH, '//div[@data-qa="task-body"]//textarea')
                 for question in questions:
-                    # driver.execute_script('arguments[0].innerHTML = arguments[1]', question, answer)
                     question.send_keys(answer)
-                    bla=1 # breakpoint for testing, something somewhere in the code opens new tabs
             except:
                 pass
     except TimeoutException:
@@ -127,8 +125,15 @@ def fill_in_cover_letter():
         cover_letter_text = wait.until(EC.element_to_be_clickable((By.XPATH, '//form[@action="/applicant/vacancy_response/edit_ajax"]/textarea')))
         driver.execute_script('arguments[0].innerHTML = arguments[1]', cover_letter_text, message)
         
-        action.double_click(wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))).perform()
-                        
+        submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))
+        driver.execute_script("arguments[0].removeAttribute('disabled')", submit_button) #remove 'disabled' attribute
+        action.double_click(submit_button).perform()
+        time.sleep(3)
+        try:
+            error = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="bloko-translate-guard"]')))
+            if error: return 0 # resume submitted but there was a server error. Just try this specific job the next time!
+        except:
+            pass
         #wait until submitted to the server:
         wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
         counter +=1
@@ -223,7 +228,7 @@ def login():
     
     wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='password']"))).send_keys(password)
 
-    time.sleep(10) # 10 senconds to enter the stupid KCapcha
+    time.sleep(10) # 10 senconds to enter the stupid antibot KCapcha
     
     login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='account-login-submit']")))
     driver.execute_script('arguments[0].click()', login_button)
