@@ -3,7 +3,7 @@ C# Blazor WebAssembly            https://nakigoe.org
 Leaflet & jQuery & Bootstrap     https://maps.nakigoe.org
 
 GitHub:	
-https://github.com/nakigoe?tab=repositories
+https://github.com/nakigoe#ru
 
 список умений:
 https://nakigoe.org/_PDF/CV-ru.pdf
