@@ -11,7 +11,7 @@ import json # for cookies
 
 cookies_path = 'auth/cookies.json'
 local_storage_path = 'auth/local_storage.json'
-user_agent = "My Usual Browser on a Usual Device" # Replace with your desired user-agent string. You can find your current browser's user-agent by searching "What's my user-agent?" in a search engine
+user_agent = "My Standard Everyday User Agent" # Replace with your desired user-agent string. You can find your current browser's user-agent by searching "What's my user-agent?" in a search engine
 options = webdriver.EdgeOptions()
 options.use_chromium = True
 options.add_argument("start-maximized")
@@ -151,8 +151,29 @@ def check_cover_letter_popup():
         return 0
     except:
         return 1 #exit the function and provide an error return of 1 (do not increase the counter)
+
+def set_value_with_event(element, value):
+    # Click to focus
+    action = ActionChains(driver)
+    action.move_to_element(element).click().perform()
     
+    # Clear the existing value
+    driver.execute_script("arguments[0].value = '';", element)
+    
+    # Use JavaScript to simulate human typing
+    driver.execute_script("""
+    var setValue = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+    var element = arguments[0];
+    var value = arguments[1];
+    
+    setValue.call(element, value);
+    
+    var event = new Event('input', { bubbles: true });
+    element.dispatchEvent(event);
+    """, element, value)
+
 def answer_questions():
+    global counter
     #create radio-buttons answers here!!!
     try: 
         test_questions_presence = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="task-body"]//textarea')))
@@ -160,11 +181,25 @@ def answer_questions():
             try:
                 questions = driver.find_elements(By.XPATH, '//div[@data-qa="task-body"]//textarea')
                 for question in questions:
-                    question.send_keys(answer)
+                    set_value_with_event(question, answer)
+                
+                submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))
+                driver.execute_script("arguments[0].removeAttribute('disabled')", submit_button) #remove 'disabled' attribute
+                action.click(submit_button).perform()
+                time.sleep(3)
+                try:
+                    error = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="bloko-translate-guard"]')))
+                    if error: return 0 # resume submitted but there was a server error. Just try this specific job the next time!
+                except:
+                    pass
+                # wait until submitted to the server: 
+                wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="vacancy-actions_responded"]')))
+                counter += 1
+                return 0
             except:
-                pass
+                return 1
     except:
-        return
+        return 1
     
 def fill_in_cover_letter():
     global counter
@@ -178,7 +213,7 @@ def fill_in_cover_letter():
         
         submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-letter-submit"]')))
         driver.execute_script("arguments[0].removeAttribute('disabled')", submit_button) #remove 'disabled' attribute
-        action.double_click(submit_button).perform()
+        action.click(submit_button).perform()
         time.sleep(3)
         try:
             error = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="bloko-translate-guard"]')))
@@ -231,22 +266,16 @@ def click_all_jobs_on_the_page():
             else:  
                 try:
                     answer_questions()
-                    if check_cover_letter_popup() == 0:
-                        driver.close()
-                        time.sleep(1)
-                        driver.switch_to.window(driver.window_handles[0])
-                        continue
-                    fill_in_cover_letter()
-                    driver.close()
-                    time.sleep(1)
-                    
-                except:
                     driver.close()
                     time.sleep(1)
                     driver.switch_to.window(driver.window_handles[0])
                     continue
-                
-            driver.switch_to.window(driver.window_handles[0])
+                    
+                except: # something is off with the page, just switch to the next dream job in the list 
+                    driver.close()
+                    time.sleep(1)
+                    driver.switch_to.window(driver.window_handles[0])
+                    continue
 
 def clear_region():
     try:
