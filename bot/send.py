@@ -4,25 +4,25 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import StaleElementReferenceException
-from selenium.webdriver.edge import service
 import os
 os.system("cls") #clear screen from previous sessions
 import time
+import json # for cookies
 
+cookies_path = 'auth/cookies.json'
+local_storage_path = 'auth/local_storage.json'
+user_agent = "My Usual Browser on a Usual Device" # Replace with your desired user-agent string. You can find your current browser's user-agent by searching "What's my user-agent?" in a search engine
 options = webdriver.EdgeOptions()
 options.use_chromium = True
 options.add_argument("start-maximized")
-my_service=service.Service(r'msedgedriver.exe')
 options.page_load_strategy = 'eager' #do not wait for images to load
+options.add_argument(f"user-agent={user_agent}")
 options.add_experimental_option("detach", True)
-options.add_argument('--no-sandbox')
 
 s = 10 #time to wait for a single component on the page to appear, in seconds; increase it if you get server-side errors «try again later»
 counter = 0
 
-driver = webdriver.Edge(service=my_service, options=options)
+driver = webdriver.Edge(options=options)
 action = ActionChains(driver)
 wait = WebDriverWait(driver,s)
 
@@ -42,6 +42,56 @@ login_page = "https://hh.ru/account/login"
 job_search_query = "Assembly"
 exclude = "испанский, немецкий, Minecraft, Unity, blender, wordpress, 1C, 1С, bitrix, erlang, angular, laravel, sharepoint, react, React.JS, vue, Vue.JS, typescript, Rust, golang, go, java, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, вейп, вейпинг, games, gambling, gamble, tobacco, vape, vaping"
 region = "global"
+search_link = "https://hh.ru/"
+
+def load_data_from_json(path): return json.load(open(path, 'r'))
+def save_data_to_json(data, path): os.makedirs(os.path.dirname(path), exist_ok=True); json.dump(data, open(path, 'w'))
+
+def add_cookies(cookies): [driver.add_cookie(cookie) for cookie in cookies]
+def add_local_storage(local_storage): 
+    [driver.execute_script(f"window.localStorage.setItem({json.dumps(k)}, {json.dumps(v)});") for k, v in local_storage.items()]
+
+def success(): return True if wait.until(EC.presence_of_element_located((By.XPATH, '//a[@data-qa="mainmenu_myResumes"]'))) else False
+
+def navigate_and_check(probe_page):
+    driver.get(probe_page)
+    time.sleep(3)
+    if success(): # return True if you are loggged in successfully independent of saving new cookies
+        save_data_to_json(driver.get_cookies(), cookies_path)
+        save_data_to_json({key: driver.execute_script(f"return window.localStorage.getItem('{key}');") for key in driver.execute_script("return Object.keys(window.localStorage);")}, local_storage_path)
+        return True
+    else: 
+        return False
+
+def login():
+    driver.get(login_page)
+    time.sleep(3)
+
+    show_more_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="expand-login-by-password"]')))
+    action.click(show_more_button).perform()
+    
+    wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@data-qa="login-input-username"]'))).send_keys(username)
+    wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@type="password"]'))).send_keys(password)
+
+    time.sleep(10) # 10 senconds to enter the stupid possible antibot CAPTCHA
+    
+    login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='account-login-submit']")))
+    driver.execute_script('arguments[0].click()', login_button)
+    
+def check_cookies_and_login():
+    driver.get(login_page) # you have to open some page first before trying to load cookies!
+    time.sleep(3)
+    
+    if os.path.exists(cookies_path) and os.path.exists(local_storage_path):
+        add_cookies(load_data_from_json(cookies_path))
+        add_local_storage(load_data_from_json(local_storage_path))
+        
+        if navigate_and_check(search_link):
+            return # it is OK, you are logged in
+    
+    login()
+    time.sleep(3)
+    navigate_and_check(search_link)
 
 def scroll_to_bottom(): 
     reached_page_end= False
@@ -113,9 +163,7 @@ def answer_questions():
                     question.send_keys(answer)
             except:
                 pass
-    except TimeoutException:
-        return
-    except StaleElementReferenceException:
+    except:
         return
     
 def fill_in_cover_letter():
@@ -141,9 +189,7 @@ def fill_in_cover_letter():
         wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="vacancy-response-letter-informer"]')))
         counter += 1
         return 0
-    except TimeoutException:
-        return 1
-    except StaleElementReferenceException:
+    except:
         return 1
     
 def click_all_jobs_on_the_page():
@@ -151,9 +197,7 @@ def click_all_jobs_on_the_page():
     scroll_to_bottom()
     try:
         test_links_presence = wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(., "Откликнуться")]')))
-    except TimeoutException:
-        return
-    except StaleElementReferenceException:
+    except:
         return
     if test_links_presence: 
         job_links = driver.find_elements(By.XPATH, '//a[contains(., "Откликнуться")]')
@@ -196,7 +240,7 @@ def click_all_jobs_on_the_page():
                     driver.close()
                     time.sleep(1)
                     
-                except TimeoutException:
+                except:
                     driver.close()
                     time.sleep(1)
                     driver.switch_to.window(driver.window_handles[0])
@@ -215,25 +259,11 @@ def clear_region():
             #check if multiple regions are selected from the previous searches
             try:
                 check_region = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qa="advanced-search__selected-regions"]/div/div/div/span')))
-            except TimeoutException:
+            except:
                 return #exit the function
 
-    except TimeoutException:
+    except:
         return #exit the function
-
-def login():
-    driver.get(login_page)
-    wait.until(EC.element_to_be_clickable((By.NAME, 'login'))).send_keys(username)
-
-    show_more_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="expand-login-by-password"]')))
-    action.click(show_more_button).perform()
-    
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='password']"))).send_keys(password)
-
-    time.sleep(10) # 10 senconds to enter the stupid antibot KCapcha
-    
-    login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@data-qa='account-login-submit']")))
-    driver.execute_script('arguments[0].click()', login_button)
 
 def advanced_search():
     action.click(wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="advanced-search"]')))).perform()
@@ -264,7 +294,7 @@ def advanced_search():
 def main():
     global counter
 
-    login()
+    check_cookies_and_login()
     time.sleep(3)
     advanced_search()
     
@@ -278,7 +308,7 @@ def main():
             #take in another hundred of results:
             next_page_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@data-qa="pager-next"]')))
             driver.execute_script("arguments[0].click()", next_page_button)
-        except TimeoutException:
+        except:
             os.system("cls") #clear screen from unnecessary logs since the operation has completed successfully
             print("It's either the hh.ru server has become undresponsive or you have reached the hh.ru limit of 200 resumes per day or all the links within the current search query have been clicked. \n 1) check if hh.ru is alive and responsive \n 2) check if you have reached the limit \n 3) check if you have clicked all the links available for the job search query. In that case change the 'job_search_query = ' value. \n \n Sincerely Yours, \n NAKIGOE.ORG")
             break
