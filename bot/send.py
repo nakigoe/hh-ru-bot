@@ -174,7 +174,23 @@ def set_value_with_event(element, value):
 
 def answer_questions():
     global counter
-    #create radio-buttons answers here!!!
+    # Radio-buttons bypass:
+    try:
+        # Find all the UL containers (Modify the selector as per your needs)
+        ul_containers = driver.find_elements(By.XPATH, '//div[@data-qa="task-body"]/ul')
+
+        # Iterate over each UL container
+        for ul in ul_containers:
+            # Find all radio buttons within the current UL
+            radio_buttons = ul.find_elements(By.XPATH, './/input[@type="radio"]')
+
+            # Click the last radio button in the list
+            if radio_buttons:
+                driver.execute_script("arguments[0].click();", radio_buttons[-1])
+    except:
+        pass
+    
+    # fill in all text areas with the portfolio links from the links-list.txt file:
     try: 
         test_questions_presence = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-qa="task-body"]//textarea')))
         if test_questions_presence: 
