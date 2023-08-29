@@ -186,7 +186,7 @@ def answer_questions():
 
             # Click the last radio button in the list
             if radio_buttons:
-                driver.execute_script("arguments[0].click();", radio_buttons[-1])
+                driver.execute_script("arguments[0].scrollIntoView(); arguments[0].click();", radio_buttons[-1])
     except:
         pass
     
