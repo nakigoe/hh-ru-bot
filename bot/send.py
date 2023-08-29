@@ -174,19 +174,19 @@ def set_value_with_event(element, value):
 
 def answer_questions():
     global counter
-    # Radio-buttons bypass:
+    # Radio-buttons and Checkboxes bypass:
     try:
         # Find all the UL containers (Modify the selector as per your needs)
         ul_containers = driver.find_elements(By.XPATH, '//div[@data-qa="task-body"]/ul')
 
         # Iterate over each UL container
         for ul in ul_containers:
-            # Find all radio buttons within the current UL
-            radio_buttons = ul.find_elements(By.XPATH, './/input[@type="radio"]')
+            # Find all radio buttons and checkboxes within the current UL
+            input_elements = ul.find_elements(By.XPATH, './/input[@type="radio" or @type="checkbox"]')
 
-            # Click the last radio button in the list
-            if radio_buttons:
-                driver.execute_script("arguments[0].scrollIntoView(); arguments[0].click();", radio_buttons[-1])
+            # Click the last input element in the list
+            if input_elements:
+                driver.execute_script("arguments[0].scrollIntoView(); arguments[0].click();", input_elements[-1])
     except:
         pass
     
