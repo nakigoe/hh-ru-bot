@@ -1,3 +1,9 @@
+# Автоматизация отправки резюме и сопроводительных писем на hh.ru 
+# Vesrion 1.3
+# 13 сентября 2023
+# HH·RU периодически обновляется, пишите!
+# © NAKIGOE.ORG все права сохраняются. Автор Maxim Angel (Ангел Максим Витальевич), aka Nakigoe. Telegram: https://t.me/nakigoe
+# 💲💲 Отправляйте пожертвования студенту! https://nakigoe.org/ru/donate
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
