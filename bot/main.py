@@ -1,9 +1,4 @@
-# Автоматизация отправки резюме и сопроводительных писем на hh.ru 
-# Vesrion 1.3
-# 13 сентября 2023
-# HH·RU периодически обновляется, пишите!
-# © NAKIGOE.ORG все права сохраняются. Автор Maxim Angel (Ангел Максим Витальевич), aka Nakigoe. Telegram: https://t.me/nakigoe
-# 💲💲 Отправляйте пожертвования студенту! https://nakigoe.org/ru/donate
+import config.settings as settings
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -19,9 +14,26 @@ class Status(Enum):
     SUCCESS = 0
     FAILURE = 1
 
-COOKIES_PATH = 'auth/cookies.json'
-LOCAL_STORAGE_PATH = 'auth/local_storage.json'
-USER_AGENT = "My Standard Browser and my standard Device" # Replace with your desired user-agent string. You can find your current browser's user-agent by searching "What's my user-agent?" in a search engine
+def read_text_file(relative_path, file_name):
+    with open(os.path.join(relative_path, file_name), 'r') as f:
+        return f.read()
+
+MESSAGE = read_text_file('resources', 'cover-letter-ru.txt') # cover letter
+ANSWER = read_text_file('resources', 'links-list.txt') # simple answer to all questions, showcase of all my works!
+USER_AGENT = settings.USER_AGENT
+COOKIES_PATH = settings.COOKIES_PATH
+LOCAL_STORAGE_PATH = settings.LOCAL_STORAGE_PATH
+USER_AGENT = settings.USER_AGENT
+USERNAME = settings.USERNAME
+PASSWORD = settings.PASSWORD
+LOGIN_PAGE = settings.LOGIN_PAGE
+JOB_SEARCH_QUERY = settings.JOB_SEARCH_QUERY
+EXCLUDE = settings.EXCLUDE
+REGION = settings.REGION
+SEARCH_LINK = settings.SEARCH_LINK
+MIN_SALARY = settings.MIN_SALARY
+ONLY_WITH_SALARY = settings.ONLY_WITH_SALARY
+
 options = webdriver.EdgeOptions()
 options.use_chromium = True
 options.add_argument("start-maximized")
@@ -53,27 +65,6 @@ def eternal_wait(driver, timeout, condition_type, locator_tuple): # timeout is s
             print(f"\n\nWaiting for the element(s) {locator_tuple} to become {condition_type}…")
             time.sleep(0.5) # just to display a message
             continue
-
-#cover letter
-text_file = open("cover-letter-ru.txt", "r")
-MESSAGE = text_file.read()
-text_file.close()
-
-#simple answer to all questions, showcase of all my works!
-text_file = open("links-list.txt", "r")
-answer = text_file.read()
-text_file.close()
-
-USERNAME = "nakigoetenshi@gmail.com"
-PASSWORD = "Super_Mega_Password"
-LOGIN_PAGE = "https://hh.ru/account/login"
-JOB_SEARCH_QUERY = "Java"
-LOGIN_PAGE = "https://hh.ru/account/login"
-EXCLUDE = "испанский, немецкий, Minecraft, Unity, blender, wordpress, 1C, 1С, bitrix, erlang, angular, laravel, sharepoint, react, React.JS, vue, Vue.JS, typescript, Rust, golang, go, java, delphi, автор, кредит, медсестра, медбрат, врач, полицейский, мойщик, упаковщик, сборщик, приемщик, приёмщик, часовщик, помощник, повар, сушист, хостес, бар, бармен, официант, бариста, курьер, продажа, маникюр, педикюр, электрик, электромонтёр, слесарь, кассир, грузчик, швея, игр, игра, игры, покер, казино, беттинг, гемблинг, гэмблинг, вейп, вейпинг, games, gambling, gamble, tobacco, vape, vaping"
-REGION = "global"
-SEARCH_LINK = "https://hh.ru/"
-MIN_SALARY = "200000"
-ONLY_WITH_SALARY = True
 
 def load_data_from_json(path): return json.load(open(path, 'r'))
 def save_data_to_json(data, path): os.makedirs(os.path.dirname(path), exist_ok=True); json.dump(data, open(path, 'w'))
@@ -249,7 +240,7 @@ def answer_questions():
             try:
                 questions = driver.find_elements(By.XPATH, '//div[@data-qa="task-body"]//textarea')
                 for question in questions:
-                    set_value_with_event(question, answer)
+                    set_value_with_event(question, ANSWER)
                 
                 submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="vacancy-response-submit-popup"]')))
                 driver.execute_script("arguments[0].removeAttribute('disabled')", submit_button) #remove 'disabled' attribute

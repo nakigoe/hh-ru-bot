@@ -5,6 +5,5 @@ Leaflet & jQuery & Bootstrap     https://maps.nakigoe.org
 GitHub:	
 https://github.com/nakigoe#ru
 
-список умений:
-https://nakigoe.org/_PDF/CV-ru.pdf
-https://nakigoe.org/_PDF/CV-en.pdf
+список умений: https://nakigoe.org/_PDF/CV-ru.pdf
+Skills List:   https://nakigoe.org/_PDF/CV-en.pdf

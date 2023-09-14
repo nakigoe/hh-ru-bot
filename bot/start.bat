@@ -1,2 +1,2 @@
-py send.py
+py main.py
 cmd /k
