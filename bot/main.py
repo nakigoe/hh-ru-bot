@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 import os
 os.system("cls") #clear screen from previous sessions
 import time
@@ -33,6 +34,7 @@ REGION = settings.REGION
 SEARCH_LINK = settings.SEARCH_LINK
 MIN_SALARY = settings.MIN_SALARY
 ONLY_WITH_SALARY = settings.ONLY_WITH_SALARY
+ADVANCED_SEARCH_URL_QUERY = getattr(settings, 'ADVANCED_SEARCH_URL_QUERY', '') # if the manual query is provided, else do the usual search and sets the value to ''
 
 options = webdriver.EdgeOptions()
 options.use_chromium = True
@@ -72,6 +74,16 @@ def save_data_to_json(data, path): os.makedirs(os.path.dirname(path), exist_ok=T
 def add_cookies(cookies): [driver.add_cookie(cookie) for cookie in cookies]
 def add_local_storage(local_storage): 
     [driver.execute_script(f"window.localStorage.setItem({json.dumps(k)}, {json.dumps(v)});") for k, v in local_storage.items()]
+
+def get_first_folder(path): # to find the correct location of cookies and local storage, be sure to keep them in the same folder!
+    return os.path.normpath(path).split(os.sep)[0]
+
+def delete_folder(folder_path):
+    if os.path.exists(folder_path):
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            delete_folder(file_path) if os.path.isdir(file_path) else os.remove(file_path)
+        os.rmdir(folder_path)
 
 def success():
     try:
@@ -114,6 +126,8 @@ def check_cookies_and_login():
         
         if navigate_and_check(SEARCH_LINK): # store fresh cookies after successful login 
             return # it is OK, you are logged in
+        else: # cookies outdated, delete them
+            delete_folder(get_first_folder(COOKIES_PATH)) # please keep the cookies.json and local_storage.json in the same folder to clear them successfully (or delete the session files manually)
     
     login()
     navigate_and_check(SEARCH_LINK) # store fresh cookies after successful login 
@@ -132,25 +146,22 @@ def click_and_wait(element, delay=1):
     action.move_to_element(element).click().perform()
     time.sleep(delay)
 
-def js_click(driver, element):
+def js_click(driver, element): # JS click
     try:
         if element.is_displayed() and element.is_enabled():
-            # Scroll the element into view
-            driver.execute_script("arguments[0].scrollIntoView();", element)
-            
-            # Move to the element to ensure it's in the viewport
-            action.move_to_element(element).perform()
-            
-            # Click the element
-            driver.execute_script("arguments[0].click();", element)
-            
-            # Ensure the element has focus
-            driver.execute_script("arguments[0].focus();", element)
-            
+            driver.execute_script(f"""
+                arguments[0].scrollIntoView();
+                var event = new MouseEvent('click', {{
+                    'view': window,
+                    'bubbles': true,
+                    'cancelable': true
+                }});
+                arguments[0].dispatchEvent(event);
+            """, element)
         else:
-            print(f"{element} element is not visible or not enabled for clicking.")
+            print("Element is not visible or not enabled for clicking.")
     except Exception as e:
-        print(f"An error occurred while clicking the element: {str(e)}")
+        print(f"An error occurred: {e}")
          
 def select_all_countries():
     region_select_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-qa="advanced-search-region-selectFromList"]')))
@@ -292,7 +303,7 @@ def click_all_jobs_on_the_page():
     #wait for the page to load dynamically
     eternal_wait(driver, 10, EC.presence_of_element_located, (By.XPATH, '//div[@data-qa="vacancies-search-header"]'))
     try:
-        job_links = custom_wait(driver, 10, EC.presence_of_all_elements_located, (By.XPATH, '//a[contains(., "Откликнуться")]'))
+        job_links = custom_wait(driver, 20, EC.presence_of_all_elements_located, (By.XPATH, '//a[contains(., "Откликнуться")]'))
     except:
         return Status.FAILURE
     
@@ -366,6 +377,7 @@ def advanced_search():
     # waiting for the new page to load
     advanced_search_textarea = eternal_wait(driver, 10, EC.element_to_be_clickable, (By.XPATH, '//input[@data-qa="vacancysearch__keywords-input"]'))
     advanced_search_textarea.send_keys(JOB_SEARCH_QUERY)
+    advanced_search_textarea.send_keys(Keys.TAB) # to escape the list popup
 
     if REGION == "global":
         clear_region()
@@ -401,7 +413,11 @@ def main():
     global counter
 
     check_cookies_and_login()
-    advanced_search()
+    
+    if ADVANCED_SEARCH_URL_QUERY: # to make the search more customizable by hand, see /config/settings.py
+        driver.get(ADVANCED_SEARCH_URL_QUERY)
+    else: 
+        advanced_search()
     
     while counter < 200: #there is a limit of 200 resumes per day on hh.ru
         if click_all_jobs_on_the_page() == Status.FAILURE:
